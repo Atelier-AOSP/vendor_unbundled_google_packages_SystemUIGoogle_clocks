@@ -92,12 +92,14 @@ open class CustomDigitalTextView(private val clockCtx: CustomClockContext, font:
         }
 
         val assets = clockCtx.assets
+        // Stock resolves these fallbacks on the plugin context, whose Resources are never refreshed
+        // on monet overlay changes; the host context keeps the tint in sync with the theme.
         val lockscreenColor =
-            assets.tryReadColor(lockscreenColorRes) ?: theme.getDefaultColor(clockCtx.context)
+            assets.tryReadColor(lockscreenColorRes) ?: theme.getDefaultColor(assets.hostCtx)
         val aodColor =
             assets.tryReadColor(aodColorRes)
                 ?: when (renderType) {
-                    RenderType.CHANGE_WEIGHT -> theme.getAodColor(clockCtx.context)
+                    RenderType.CHANGE_WEIGHT -> theme.getAodColor(assets.hostCtx)
                     RenderType.HOLLOW_TEXT,
                     RenderType.STROKE_TEXT,
                     RenderType.OUTER_OUTLINE_TEXT -> Color.TRANSPARENT
