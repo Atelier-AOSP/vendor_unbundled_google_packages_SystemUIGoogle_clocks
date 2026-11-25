@@ -35,7 +35,11 @@ class MetroClockProvider : BaseClockProvider(listOf(MetroDesign)) {
     override val factory = TypeFactory()
 
     class TypeFactory : BaseTypeFactory() {
-        override fun createViewGroup(clockCtx: CustomClockContext, face: ClockFace): ViewGroup {
+        override fun createViewGroup(
+            clockCtx: CustomClockContext,
+            face: ClockFace,
+            isLargeClock: Boolean,
+        ): ViewGroup {
             return MetroClockViewGroup(clockCtx, face.faceLayout)
         }
 

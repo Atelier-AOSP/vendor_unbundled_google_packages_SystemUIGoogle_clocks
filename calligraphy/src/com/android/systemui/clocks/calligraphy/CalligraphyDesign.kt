@@ -47,11 +47,11 @@ val CalligraphyDesign =
                         DigitalHandLayer(
                             timespec = DigitalTimespec.DIGIT_PAIR,
                             font = fontSpec,
-                            style = CustomFontTextStyle(fontSizeScale = 0.95f),
+                            style = CustomFontTextStyle(fontSizeScale = 0.88f),
                             aodStyle =
                                 CustomFontTextStyle(
                                     borderWidth = "4dp",
-                                    fontSizeScale = 0.95f,
+                                    fontSizeScale = 0.88f,
                                     renderType = RenderType.HOLLOW_TEXT,
                                     outlineColor = "@android:color/system_accent1_100",
                                 ),
@@ -65,11 +65,11 @@ val CalligraphyDesign =
                         DigitalHandLayer(
                             timespec = DigitalTimespec.DIGIT_PAIR,
                             font = fontSpec,
-                            style = CustomFontTextStyle(fontSizeScale = 0.95f),
+                            style = CustomFontTextStyle(fontSizeScale = 0.88f),
                             aodStyle =
                                 CustomFontTextStyle(
                                     borderWidth = "4dp",
-                                    fontSizeScale = 0.95f,
+                                    fontSizeScale = 0.88f,
                                     renderType = RenderType.HOLLOW_TEXT,
                                     outlineColor = "@android:color/system_accent1_100",
                                 ),

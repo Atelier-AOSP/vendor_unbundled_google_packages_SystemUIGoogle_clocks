@@ -26,7 +26,7 @@ import com.android.systemui.customization.clocks.view.DigitalAlignment
 import com.android.systemui.customization.clocks.view.HorizontalAlignment
 import com.android.systemui.customization.clocks.view.VerticalAlignment
 
-private fun transitTextStyle() =
+private fun transitTextStyle(fontSizeScale: Float = 1f) =
     LottieTextStyle(
         numbers =
             listOf(
@@ -56,6 +56,7 @@ private fun transitTextStyle() =
                 "Color 3" to "@android:color/system_accent1_650",
                 "Color 4" to "@android:color/system_accent1_450",
             ),
+        fontSizeScale = fontSizeScale,
         paddingVertical = "4dp",
         paddingHorizontal = "4dp",
     )
@@ -72,7 +73,7 @@ val MetroDesign =
                     listOf(
                         DigitalHandLayer(
                             timespec = DigitalTimespec.FIRST_DIGIT,
-                            style = transitTextStyle(),
+                            style = transitTextStyle(fontSizeScale = 0.9f),
                             dateTimeFormat = "hh",
                             alignment =
                                 DigitalAlignment(
@@ -82,7 +83,7 @@ val MetroDesign =
                         ),
                         DigitalHandLayer(
                             timespec = DigitalTimespec.SECOND_DIGIT,
-                            style = transitTextStyle(),
+                            style = transitTextStyle(fontSizeScale = 0.9f),
                             dateTimeFormat = "hh",
                             alignment =
                                 DigitalAlignment(
@@ -92,7 +93,7 @@ val MetroDesign =
                         ),
                         DigitalHandLayer(
                             timespec = DigitalTimespec.FIRST_DIGIT,
-                            style = transitTextStyle(),
+                            style = transitTextStyle(fontSizeScale = 0.9f),
                             dateTimeFormat = "mm",
                             alignment =
                                 DigitalAlignment(
@@ -102,7 +103,7 @@ val MetroDesign =
                         ),
                         DigitalHandLayer(
                             timespec = DigitalTimespec.SECOND_DIGIT,
-                            style = transitTextStyle(),
+                            style = transitTextStyle(fontSizeScale = 0.9f),
                             dateTimeFormat = "mm",
                             alignment =
                                 DigitalAlignment(

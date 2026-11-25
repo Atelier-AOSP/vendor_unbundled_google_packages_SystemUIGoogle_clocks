@@ -41,7 +41,7 @@ import java.util.Locale
 
 class AssetLayerController(clockCtx: CustomClockContext, layer: AssetLayer) : ClockLayerController {
     override val view: View = ImageView(clockCtx.context)
-    val asset = AssetDrawable(clockCtx.assets, layer.asset)
+    val asset = AssetDrawable(clockCtx.assetLoader, layer.asset)
     override val config = ClockFaceConfig()
     override var onViewBoundsChanged: ((VRectF) -> Unit)? = null
     override var onViewMaxSizeChanged: ((VPointF) -> Unit)? = null

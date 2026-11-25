@@ -60,10 +60,12 @@ val NumberOverlapDesign =
                                                     "@android:color/system_accent1_40+0",
                                                 fillColorDark =
                                                     "@android:color/system_accent1_730+0",
+                                                fontSizeScale = 0.95f,
                                             ),
                                         aodStyle =
                                             CustomFontTextStyle(
                                                 borderWidth = "4dp",
+                                                fontSizeScale = 0.95f,
                                                 renderType = RenderType.HOLLOW_TEXT,
                                                 outlineColor = "@android:color/system_accent1_100",
                                             ),
@@ -83,10 +85,12 @@ val NumberOverlapDesign =
                                                     "@android:color/system_accent1_40+120",
                                                 fillColorDark =
                                                     "@android:color/system_accent1_730+120",
+                                                fontSizeScale = 0.95f,
                                             ),
                                         aodStyle =
                                             CustomFontTextStyle(
                                                 borderWidth = "4dp",
+                                                fontSizeScale = 0.95f,
                                                 renderType = RenderType.HOLLOW_TEXT,
                                                 outlineColor = "@android:color/system_accent1_100",
                                             ),
@@ -106,10 +110,12 @@ val NumberOverlapDesign =
                                                     "@android:color/system_accent1_40+120",
                                                 fillColorDark =
                                                     "@android:color/system_accent1_730+120",
+                                                fontSizeScale = 0.95f,
                                             ),
                                         aodStyle =
                                             CustomFontTextStyle(
                                                 borderWidth = "4dp",
+                                                fontSizeScale = 0.95f,
                                                 renderType = RenderType.HOLLOW_TEXT,
                                                 outlineColor = "@android:color/system_accent1_100",
                                             ),
@@ -129,10 +135,12 @@ val NumberOverlapDesign =
                                                     "@android:color/system_accent1_40+0",
                                                 fillColorDark =
                                                     "@android:color/system_accent1_730+0",
+                                                fontSizeScale = 0.95f,
                                             ),
                                         aodStyle =
                                             CustomFontTextStyle(
                                                 borderWidth = "4dp",
+                                                fontSizeScale = 0.95f,
                                                 renderType = RenderType.HOLLOW_TEXT,
                                                 outlineColor = "@android:color/system_accent1_100",
                                             ),

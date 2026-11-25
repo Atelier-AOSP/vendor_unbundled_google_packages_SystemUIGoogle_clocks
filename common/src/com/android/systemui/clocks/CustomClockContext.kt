@@ -25,10 +25,15 @@ import com.android.systemui.customization.clocks.ClockContext
 import com.android.systemui.customization.clocks.ClockContextImpl
 import com.android.systemui.customization.clocks.TypefaceCache
 import com.android.systemui.log.core.MessageBuffer
+import com.android.systemui.plugins.keyguard.ui.clocks.ClockAssets
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockFaceLayout
 
 interface TypeFactory {
-    fun createViewGroup(clockCtx: CustomClockContext, face: ClockFace): ViewGroup
+    fun createViewGroup(
+        clockCtx: CustomClockContext,
+        face: ClockFace,
+        isLargeClock: Boolean,
+    ): ViewGroup
 
     fun createComposedView(
         clockCtx: CustomClockContext,
@@ -45,17 +50,23 @@ interface TypeFactory {
     fun createLayout(clockCtx: CustomClockContext, face: ClockFace, view: View): ClockFaceLayout
 }
 
+// Stock also keeps a listener list here; R8 stripped everything that used it, so its element
+// type can't be recovered and it is left out.
+class ClockAssetSupplier(private var assets: ClockAssets)
+
 class CustomClockContext(
     val factory: TypeFactory,
-    val assets: AssetLoader,
+    val assetLoader: AssetLoader,
     val typefaceCache: TypefaceCache<FontSpec>,
+    private val assetSupplier: ClockAssetSupplier,
     private val innerCtx: ClockContextImpl,
 ) : ClockContext by innerCtx {
     fun copy(messageBuffer: MessageBuffer): CustomClockContext {
         return CustomClockContext(
             factory,
-            assets.copy(messageBuffer = messageBuffer),
+            assetLoader.copy(messageBuffer = messageBuffer),
             typefaceCache,
+            assetSupplier,
             innerCtx.copy(messageBuffer = messageBuffer),
         )
     }

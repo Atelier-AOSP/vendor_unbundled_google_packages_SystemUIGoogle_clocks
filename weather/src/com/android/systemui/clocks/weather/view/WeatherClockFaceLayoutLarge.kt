@@ -44,15 +44,16 @@ import com.android.systemui.plugins.keyguard.ui.composable.elements.LockscreenEl
 import com.android.systemui.plugins.keyguard.ui.composable.elements.LockscreenElementKeys
 import com.android.systemui.plugins.keyguard.ui.composable.elements.LockscreenScope
 import com.android.systemui.plugins.keyguard.ui.composable.elements.LockscreenScope.Companion.LockscreenElement
-import com.android.systemui.plugins.keyguard.ui.composable.elements.MovableLockscreenElement
 
 object WeatherClockElementKeys {
-    val Time = MovableElementKey("WeatherClockTime", LockscreenElementKeys.ContentPicker)
-    val Date = MovableElementKey("WeatherClockDate", LockscreenElementKeys.ContentPicker)
-    val StateIcon = MovableElementKey("WeatherClockStateIcon", LockscreenElementKeys.ContentPicker)
+    val Time = MovableElementKey("WeatherClockTime", LockscreenElementKeys.LargeClockContentPicker)
+    val Date = MovableElementKey("WeatherClockDate", LockscreenElementKeys.LargeClockContentPicker)
+    val StateIcon =
+        MovableElementKey("WeatherClockStateIcon", LockscreenElementKeys.LargeClockContentPicker)
     val Temperature =
-        MovableElementKey("WeatherClockTemperature", LockscreenElementKeys.ContentPicker)
-    val AlarmDND = MovableElementKey("WeatherClockAlarmDND", LockscreenElementKeys.ContentPicker)
+        MovableElementKey("WeatherClockTemperature", LockscreenElementKeys.LargeClockContentPicker)
+    val AlarmDND =
+        MovableElementKey("WeatherClockAlarmDND", LockscreenElementKeys.LargeClockContentPicker)
 }
 
 class WeatherClockFaceLayoutLarge(
@@ -102,7 +103,7 @@ class WeatherClockFaceLayoutLarge(
             .toList()
     }
 
-    override val elements: List<BaseLockscreenElement> by lazy {
+    private val innerElements: List<WeatherElement> by lazy {
         view.setWillNotDraw(true)
         for (child in view.children) {
             view.removeView(child)
@@ -127,29 +128,35 @@ class WeatherClockFaceLayoutLarge(
             WeatherElement(WeatherClockElementKeys.Temperature, view.temperatureView) {
                 Modifier.padding(end = dimensionResource(R.dimen.weather_temp_end_padding))
             },
-            LargeWeatherRegionElement(),
         )
+    }
+
+    override val elements: List<BaseLockscreenElement> by lazy {
+        innerElements + LargeWeatherRegionElement()
     }
 
     private inner class WeatherElement(
         override val key: MovableElementKey,
         private val targetView: View,
-        private val modifier: @Composable MovableElementContentScope.() -> Modifier,
-    ) : MovableLockscreenElement {
+        private val modifier: @Composable () -> Modifier,
+    ) : DefaultClockFaceLayout.Companion.ClockElement() {
         override val context: Context = view.context
         override val source = ElementSource.DYNAMIC
 
         @Composable
         override fun LockscreenScope<MovableElementContentScope>.LockscreenElement() {
-            DefaultClockFaceLayout.ClockView(
-                targetView,
-                contentScope.modifier().burnInAware(isClock = true).nonAuthUI(),
-            )
+            invalidate =
+                DefaultClockFaceLayout.clockView(
+                    targetView,
+                    modifier().burnInAware(isClock = true).nonAuthUI(),
+                )
         }
     }
 
     private inner class LargeWeatherRegionElement : LockscreenElement {
-        override val key = LockscreenElementKeys.Region.Clock.Large
+        override val key
+            get() = LockscreenElementKeys.Region.Clock.Large
+
         override val context: Context = view.context
         override val source = ElementSource.DYNAMIC
 
@@ -223,7 +230,7 @@ class WeatherClockFaceLayoutLarge(
                 clockPaddingStart,
             )
             connect(
-                clockCtx.assets.getResourcesId("bc_smartspace_view"),
+                clockCtx.assetLoader.getResourcesId("bc_smartspace_view"),
                 ConstraintSet.TOP,
                 ClockViewIds.WEATHER_CLOCK_TIME,
                 ConstraintSet.BOTTOM,

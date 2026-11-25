@@ -206,9 +206,9 @@ class LottieDigitalTextView(
 
     override fun updateTheme(theme: ThemeConfig) {
         val colorMap = if (theme.isDarkTheme) lightColorMap else darkColorMap
-        val colonColor = clockCtx.assets.readColor("@android:color/system_accent1_100")
+        val colonColor = clockCtx.assetLoader.readColor("@android:color/system_accent1_100")
         colorMap.forEach { (keyPath, colorRes) ->
-            val color = clockCtx.assets.readColor(colorRes)
+            val color = clockCtx.assetLoader.readColor(colorRes)
             numbers.forEachIndexed { _, drawable ->
                 (drawable as? LottieDrawable)?.addValueCallback(
                     KeyPath("**", keyPath),
@@ -237,9 +237,9 @@ class LottieDigitalTextView(
 
         val assets = if (isLargeClock) largeTransitClockAssets else smallTransitClockAssets
         if (numbers.isEmpty()) {
-            numbers = assets.getNumbersList(clockCtx.assets, style.numbers)
+            numbers = assets.getNumbersList(clockCtx.assetLoader, style.numbers)
         }
-        colon = style.colon?.let { assets.getColon(clockCtx.assets, it) }
+        colon = style.colon?.let { assets.getColon(clockCtx.assetLoader, it) }
         style.fillColorLightMap?.let { lightColorMap = it }
         style.fillColorDarkMap?.let { darkColorMap = it }
     }

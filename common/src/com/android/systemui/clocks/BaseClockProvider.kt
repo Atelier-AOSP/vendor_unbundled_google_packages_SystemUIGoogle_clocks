@@ -40,24 +40,35 @@ import com.android.systemui.customization.clocks.TimeKeeperImpl
 import com.android.systemui.customization.clocks.TypefaceCache
 import com.android.systemui.customization.clocks.view.DefaultClockFaceLayout
 import com.android.systemui.log.core.Logger
+import com.android.systemui.plugins.keyguard.ui.clocks.ClockAssets
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockFaceLayout
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockMessageBuffers
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockMetadata
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockPickerConfig
+import com.android.systemui.plugins.keyguard.ui.clocks.ClockProviderEventListener
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockProviderPlugin
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockSettings
+import java.util.concurrent.Executor
 
 abstract class BaseClockProvider(designs: List<ClockDesign>) : ClockProviderPlugin {
-    private lateinit var hostCtx: Context
-    private lateinit var pluginCtx: Context
+    protected lateinit var hostCtx: Context
+        private set
+
+    protected lateinit var pluginCtx: Context
+        private set
+
+    protected lateinit var logger: Logger
+        private set
+
     private var messageBuffers: ClockMessageBuffers? = null
-    private lateinit var logger: Logger
-    private lateinit var typefaceCache: TypefaceCache<FontSpec>
-    private var timeKeeper: TimeKeeper = TimeKeeperImpl()
+    private var eventListener: ClockProviderEventListener? = null
+    private var timeKeeperFactory: () -> TimeKeeper = { TimeKeeperImpl() }
     private val designs = designs.associateBy { it.id }.toMutableMap()
 
-    protected lateinit var assets: AssetLoader
+    protected lateinit var assetLoader: AssetLoader
     protected lateinit var fontDiskCache: FontDiskCache
+    protected lateinit var typefaceCache: TypefaceCache<FontSpec>
+    protected lateinit var bgExecutor: Executor
 
     open val factory: TypeFactory = BaseTypeFactory()
 
@@ -69,13 +80,19 @@ abstract class BaseClockProvider(designs: List<ClockDesign>) : ClockProviderPlug
         this.pluginCtx = pluginCtx
     }
 
-    override fun initialize(buffers: ClockMessageBuffers?) {
+    override fun initialize(
+        bgExecutor: Executor,
+        buffers: ClockMessageBuffers?,
+        listener: ClockProviderEventListener?,
+    ) {
+        eventListener = listener
+        this.bgExecutor = bgExecutor
         messageBuffers = buffers
         val messageBuffer = buffers?.infraMessageBuffer ?: ClockLogger.DEFAULT_MESSAGE_BUFFER
         logger = Logger(messageBuffer, TAG)
 
-        if (!::assets.isInitialized) {
-            assets = AssetLoader(pluginCtx, hostCtx, "clocks/", messageBuffer)
+        if (!::assetLoader.isInitialized) {
+            assetLoader = AssetLoader(pluginCtx, hostCtx, "clocks/", messageBuffer)
         }
 
         if (!::fontDiskCache.isInitialized) {
@@ -97,7 +114,7 @@ abstract class BaseClockProvider(designs: List<ClockDesign>) : ClockProviderPlug
     }
 
     fun validateDesign(design: ClockDesign): Boolean {
-        val validator = ClockDesignValidator(assets)
+        val validator = ClockDesignValidator(assetLoader)
         validator.validate(design)
         if (!validator.isValid) {
             logger.e({ "Clock '$str1' failed validation:\n$str2" }) {
@@ -109,7 +126,11 @@ abstract class BaseClockProvider(designs: List<ClockDesign>) : ClockProviderPlug
     }
 
     open class BaseTypeFactory : TypeFactory {
-        override fun createViewGroup(clockCtx: CustomClockContext, face: ClockFace): ViewGroup {
+        override fun createViewGroup(
+            clockCtx: CustomClockContext,
+            face: ClockFace,
+            isLargeClock: Boolean,
+        ): ViewGroup {
             if (face.layers.any { it is AnalogHandLayer }) {
                 return RelativeLayout(clockCtx.context)
             }
@@ -167,32 +188,48 @@ abstract class BaseClockProvider(designs: List<ClockDesign>) : ClockProviderPlug
         return designs.keys.map { ClockMetadata(it) }
     }
 
-    private fun getDesign(settings: ClockSettings): ClockDesign {
+    protected fun getDesign(settings: ClockSettings): ClockDesign {
         val clockId = requireNotNull(settings.clockId) { "ClockId not specified in $settings" }
         return requireNotNull(designs[clockId]) { "$clockId is not valid for $TAG" }
     }
 
-    override fun createClock(ctx: Context, settings: ClockSettings): CustomClockController {
-        val design = getDesign(settings)
+    protected open fun createClockContext(
+        ctx: Context,
+        settings: ClockSettings,
+        assets: ClockAssets,
+        design: ClockDesign,
+    ): CustomClockContext {
         val factory = factory
-        val assets = assets.copy(hostCtx = ctx)
-        assets.setSeedColor(settings.seedColor, design.colorPalette)
-        return CustomClockController(
-            CustomClockContext(
-                factory,
-                assets,
-                typefaceCache,
-                ClockContextImpl(
-                    context = pluginCtx,
-                    resources = pluginCtx.resources,
-                    settings = settings,
-                    messageBuffer =
-                        messageBuffers?.infraMessageBuffer ?: ClockLogger.DEFAULT_MESSAGE_BUFFER,
-                    vibrator = null,
-                    timeKeeper = timeKeeper,
-                    isAnimationEnabled = isAnimationEnabled,
-                ),
+        val assetLoader = assetLoader.copy(hostCtx = ctx)
+        assetLoader.setSeedColor(settings.seedColor, design.colorPalette)
+        return CustomClockContext(
+            factory,
+            assetLoader,
+            typefaceCache,
+            ClockAssetSupplier(assets),
+            ClockContextImpl(
+                context = pluginCtx,
+                resources = pluginCtx.resources,
+                settings = settings,
+                messageBuffer =
+                    messageBuffers?.infraMessageBuffer ?: ClockLogger.DEFAULT_MESSAGE_BUFFER,
+                vibrator = null,
+                timeKeeper = timeKeeperFactory(),
+                mainExecutor = pluginCtx.mainExecutor,
+                bgExecutor = bgExecutor,
+                isAnimationEnabled = isAnimationEnabled,
             ),
+        )
+    }
+
+    override fun createClock(
+        ctx: Context,
+        settings: ClockSettings,
+        assets: ClockAssets,
+    ): CustomClockController {
+        val design = getDesign(settings)
+        return CustomClockController(
+            createClockContext(ctx, settings, assets, design),
             design,
             messageBuffers,
         )
@@ -202,10 +239,10 @@ abstract class BaseClockProvider(designs: List<ClockDesign>) : ClockProviderPlug
         val design = getDesign(settings)
         return ClockPickerConfig(
             id = design.id,
-            name = design.name?.let { assets.tryReadString(it) ?: it } ?: "",
-            description = design.description?.let { assets.tryReadString(it) ?: it } ?: "",
+            name = design.name?.let { assetLoader.tryReadString(it) ?: it } ?: "",
+            description = design.description?.let { assetLoader.tryReadString(it) ?: it } ?: "",
             thumbnail =
-                design.thumbnail?.let { assets.tryReadDrawableAsset(it) }
+                design.thumbnail?.let { assetLoader.tryReadDrawableAsset(it) }
                     ?: pluginCtx.resources.getDrawable(R.drawable.placeholder_thumbnail, null),
             isReactiveToTone =
                 design.colorPalette == null || design.colorPalette == ThemeStyle.CLOCK,

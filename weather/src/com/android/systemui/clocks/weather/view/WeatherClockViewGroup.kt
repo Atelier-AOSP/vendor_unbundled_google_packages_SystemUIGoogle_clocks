@@ -102,7 +102,9 @@ abstract class WeatherClockBaseViewGroup(private val clockCtx: CustomClockContex
         alarmData?.let { alarmData ->
             if (alarmData.nextAlarmMillis != null) {
                 icons.append("p")
-                alarmData.descriptionId?.let { descriptions.append(clockCtx.assets.getString(it)) }
+                alarmData.descriptionId?.let {
+                    descriptions.append(clockCtx.assetLoader.getString(it))
+                }
             }
         }
         zenData?.let { zenData ->
@@ -112,7 +114,7 @@ abstract class WeatherClockBaseViewGroup(private val clockCtx: CustomClockContex
                     if (descriptions.isNotEmpty()) {
                         descriptions.append(", ")
                     }
-                    descriptions.append(clockCtx.assets.getString(it))
+                    descriptions.append(clockCtx.assetLoader.getString(it))
                 }
             }
         }

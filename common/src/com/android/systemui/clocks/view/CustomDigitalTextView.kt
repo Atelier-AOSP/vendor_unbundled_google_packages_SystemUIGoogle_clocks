@@ -91,23 +91,24 @@ open class CustomDigitalTextView(private val clockCtx: CustomClockContext, font:
             if (theme.isDarkTheme) it.fillColorLight else it.fillColorDark
         }
 
-        val assets = clockCtx.assets
+        val assetLoader = clockCtx.assetLoader
         // Stock resolves these fallbacks on the plugin context, whose Resources are never refreshed
         // on monet overlay changes; the host context keeps the tint in sync with the theme.
         val lockscreenColor =
-            assets.tryReadColor(lockscreenColorRes) ?: theme.getDefaultColor(assets.hostCtx)
+            assetLoader.tryReadColor(lockscreenColorRes)
+                ?: theme.getDefaultColor(assetLoader.hostCtx)
         val aodColor =
-            assets.tryReadColor(aodColorRes)
+            assetLoader.tryReadColor(aodColorRes)
                 ?: when (renderType) {
-                    RenderType.CHANGE_WEIGHT -> theme.getAodColor(assets.hostCtx)
+                    RenderType.CHANGE_WEIGHT -> theme.getAodColor(assetLoader.hostCtx)
                     RenderType.HOLLOW_TEXT,
                     RenderType.STROKE_TEXT,
                     RenderType.OUTER_OUTLINE_TEXT -> Color.TRANSPARENT
                 }
         updateColor(lockscreenColor, aodColor)
 
-        textOutlineColor = assets.tryReadColor(textStyle.outlineColor) ?: Color.TRANSPARENT
-        aodOutlineColor = assets.tryReadColor(aodStyle?.outlineColor) ?: Color.WHITE
+        textOutlineColor = assetLoader.tryReadColor(textStyle.outlineColor) ?: Color.TRANSPARENT
+        aodOutlineColor = assetLoader.tryReadColor(aodStyle?.outlineColor) ?: Color.WHITE
         outlineAnimator.setTextStyle(
             TextAnimator.Style(color = if (dozeFraction < 1f) textOutlineColor else aodOutlineColor)
         )

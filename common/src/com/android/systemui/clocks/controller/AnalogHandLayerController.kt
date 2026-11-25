@@ -16,6 +16,7 @@
 
 package com.android.systemui.clocks.controller
 
+import android.content.Context
 import android.icu.util.TimeZone
 import android.view.View
 import android.view.ViewGroup
@@ -64,6 +65,9 @@ class AnalogClockFaceLayout(view: View) : DefaultClockFaceLayout(view) {
             for (child in view.children) {
                 maxHeight = max(maxHeight, child.layoutParams.height)
                 maxWidth = max(maxWidth, child.layoutParams.width)
+                if (child is AnalogHandView) {
+                    child.onRotationChanged = { clockElement.invalidate() }
+                }
             }
         }
         smallClockModifier = { Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true) }
@@ -162,13 +166,13 @@ class AnalogHandLayerController(clockCtx: CustomClockContext, private val layer:
                 }
         )
 
-    override val view: View = ImageView(clockCtx.context)
-    val asset = AssetDrawable(clockCtx.assets, layer.asset)
+    override val view: View = AnalogHandView(clockCtx.context)
+    val asset = AssetDrawable(clockCtx.assetLoader, layer.asset)
     override var onViewBoundsChanged: ((VRectF) -> Unit)? = null
     override var onViewMaxSizeChanged: ((VPointF) -> Unit)? = null
 
     init {
-        (view as ImageView).setImageDrawable(asset)
+        (view as AnalogHandView).setImageDrawable(asset)
         val size = max(asset.intrinsicHeight, asset.intrinsicWidth)
         view.layoutParams =
             RelativeLayout.LayoutParams(size, size).apply {
@@ -250,5 +254,29 @@ class AnalogHandLayerController(clockCtx: CustomClockContext, private val layer:
 
     companion object {
         private val TAG = AnalogHandLayerController::class.simpleName!!
+    }
+}
+
+class AnalogHandView(context: Context) : ImageView(context) {
+    private var isAttached = false
+    var onRotationChanged: (AnalogHandView) -> Unit = {}
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        isAttached = true
+        onRotationChanged(this)
+    }
+
+    override fun onDetachedFromWindow() {
+        // Matches stock, which calls the attach callback of the superclass here.
+        super.onAttachedToWindow()
+        isAttached = false
+    }
+
+    override fun setRotation(rotation: Float) {
+        super.setRotation(rotation)
+        if (isAttached) {
+            onRotationChanged(this)
+        }
     }
 }

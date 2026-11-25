@@ -18,6 +18,7 @@ package com.android.systemui.clocks.controller
 
 import android.icu.util.TimeZone
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.RelativeLayout
 import com.android.systemui.clocks.CustomClockContext
@@ -84,7 +85,7 @@ open class DigitalHandLayerController(
         }
 
     init {
-        view.layoutParams = RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+        view.layoutParams = ViewGroup.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         layer.alignment?.let { alignment ->
             alignment.verticalAlignment?.let {
                 (view as ICustomDigitalTextView).verticalAlignment = it

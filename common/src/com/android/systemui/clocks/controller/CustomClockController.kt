@@ -59,8 +59,9 @@ class CustomClockController(
     override val config =
         ClockConfig(
             id = design.id,
-            name = design.name?.let { clockCtx.assets.tryReadString(it) ?: it } ?: "",
-            description = design.description?.let { clockCtx.assets.tryReadString(it) ?: it } ?: "",
+            name = design.name?.let { clockCtx.assetLoader.tryReadString(it) ?: it } ?: "",
+            description =
+                design.description?.let { clockCtx.assetLoader.tryReadString(it) ?: it } ?: "",
             useAlternateSmartspaceAODTransition =
                 smallClock.config.hasCustomWeatherDataDisplay ||
                     largeClock.config.hasCustomWeatherDataDisplay,

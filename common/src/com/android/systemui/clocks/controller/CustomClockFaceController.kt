@@ -56,7 +56,7 @@ class CustomClockFaceController(
 ) : ClockFaceController {
     interface ClockEventUnion : ClockEvents, ClockFaceEvents
 
-    override var theme = ThemeConfig(true, clockCtx.assets.seedColor)
+    override var theme = ThemeConfig(true, clockCtx.assetLoader.seedColor)
     val layers = mutableListOf<ClockLayerController>()
     val timeFormatter = DigitalTimeFormatter("hh:mm", clockCtx.timeKeeper, true)
     val timespecHandler = DigitalTimespecHandler(DigitalTimespec.TIME_FULL_FORMAT, timeFormatter)
@@ -72,7 +72,7 @@ class CustomClockFaceController(
             layer.view.layoutParams = layoutParams
             layer.view
         } else {
-            clockCtx.factory.createViewGroup(clockCtx, face).apply {
+            clockCtx.factory.createViewGroup(clockCtx, face, isLargeClock).apply {
                 this.layoutParams = layoutParams
                 clipChildren = false
                 for (layer in face.layers) {
@@ -89,6 +89,10 @@ class CustomClockFaceController(
                 }
             }
         }
+    }
+
+    init {
+        view.isFocusable = true
     }
 
     override val config =
@@ -145,7 +149,7 @@ class CustomClockFaceController(
 
             override fun onThemeChanged(theme: ThemeConfig) {
                 this@CustomClockFaceController.theme = theme
-                clockCtx.assets.setSeedColor(theme.seedColor, clockCtx.assets.style)
+                clockCtx.assetLoader.setSeedColor(theme.seedColor, clockCtx.assetLoader.style)
                 layers.forEach { it.faceEvents.onThemeChanged(theme) }
             }
 
